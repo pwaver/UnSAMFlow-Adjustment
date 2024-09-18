@@ -23,6 +23,8 @@ Manifest.toml
 # Binary files
 *.ckpt
 *.dcm
+*.pt
+*.pth
 
 # Data files
 *.dat
