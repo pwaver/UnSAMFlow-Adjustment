@@ -25,12 +25,12 @@ parser = argparse.ArgumentParser(
     )
 )
 
-# parser.add_argument(
-#     "--input",
-#     type=str,
-#     required=True,
-#     help="Path to either a single input image or folder of images.",
-# )
+parser.add_argument(
+    "--input",
+    type=str,
+    required=True,
+    help="Path to either a single input image or folder of images.",
+)
 
 parser.add_argument(
     "--dataset",
@@ -206,70 +206,79 @@ def get_amg_kwargs(args):
 
 
 def main(args: argparse.Namespace) -> None:
+    
+    home_dir = "/home/billb/github/UnSAMFlow-Adjustment"
 
     print("Loading model...")
     sam = sam_model_registry[args.model_type](checkpoint=args.checkpoint)
     _ = sam.to(device=args.device)
     output_mode = "coco_rle" if args.convert_to_rle else "binary_mask"
     amg_kwargs = get_amg_kwargs(args)
+    print("amg_kwargs: ", amg_kwargs)
+    
+    print("args: ", args)
     generator = SamAutomaticMaskGenerator(sam, output_mode=output_mode, **amg_kwargs)
+    
+    input_dir = os.path.join(home_dir, args.input)
 
-    # if not os.path.isdir(args.input):
-    #     targets = [args.input]
-    # else:
-    #     targets = [
-    #         f
-    #         for f in os.listdir(args.input)
-    #         if not os.path.isdir(os.path.join(args.input, f))
-    #     ]
-    #     targets = [os.path.join(args.input, f) for f in targets]
-
-    if args.dataset == "KITTI-2015" or args.dataset == "KITTI-2012":
-        dataset_root = (
-            YOUR_DIR + args.dataset
-        )
-
-        targets = []
-        for split in ["training", "testing"]:
-            with open(os.path.join(dataset_root, split, "image_list.txt"), "r") as f:
-                line = f.readlines()[0]
-                line = line.split(" ")
-                targets += [os.path.join(split, t) for t in line]
-
-    elif args.dataset == "KITTI-raw":
-        dataset_root = YOUR_DIR
-
-        targets = []
-        with open(os.path.join(dataset_root, "kitti_train_2f_sv.txt"), "r") as f:
-            lines = f.readlines()
-
-        for line in lines:
-            targets += line.split()
-        targets = np.unique(targets).tolist()
-
-    elif args.dataset == "Sintel":
-        dataset_root = YOUR_DIR
-
-        targets = []
-        for split in ["training", "test"]:
-            with open(os.path.join(dataset_root, split, "image_list.txt"), "r") as f:
-                line = f.readlines()[0]
-                line = line.split(" ")
-                targets += [os.path.join(split, t) for t in line]
-
-    elif args.dataset == "Sintel-raw":
-        dataset_root = YOUR_DIR
-
-        targets = []
-        with open(os.path.join(dataset_root, "sample_list.txt"), "r") as f:
-            lines = f.readlines()
-
-        for line in lines:
-            targets += line.split()
-        targets = np.unique(targets).tolist()
-
+    print("input_dir: ", input_dir)
+    if not os.path.isdir(input_dir):
+        targets = [input_dir]
     else:
-        raise ValueError(f"Unknown dataset: {args.dataset}")
+        targets = [
+            f
+            for f in os.listdir(input_dir)
+            if not os.path.isdir(os.path.join(input_dir, f))
+        ]
+        targets = [os.path.join(input_dir, f) for f in targets]
+
+    dataset_root = "/home/billb/github/UnSAMFlow-Adjustment/" + args.dataset
+    # if args.dataset == "KITTI-2015" or args.dataset == "KITTI-2012":
+    #     dataset_root = (
+    #         YOUR_DIR + args.dataset
+    #     )
+
+    #     targets = []
+    #     for split in ["training", "testing"]:
+    #         with open(os.path.join(dataset_root, split, "image_list.txt"), "r") as f:
+    #             line = f.readlines()[0]
+    #             line = line.split(" ")
+    #             targets += [os.path.join(split, t) for t in line]
+
+    # elif args.dataset == "KITTI-raw":
+    #     dataset_root = YOUR_DIR
+
+    #     targets = []
+    #     with open(os.path.join(dataset_root, "kitti_train_2f_sv.txt"), "r") as f:
+    #         lines = f.readlines()
+
+    #     for line in lines:
+    #         targets += line.split()
+    #     targets = np.unique(targets).tolist()
+
+    # elif args.dataset == "Sintel":
+    #     dataset_root = YOUR_DIR
+
+    #     targets = []
+    #     for split in ["training", "test"]:
+    #         with open(os.path.join(dataset_root, split, "image_list.txt"), "r") as f:
+    #             line = f.readlines()[0]
+    #             line = line.split(" ")
+    #             targets += [os.path.join(split, t) for t in line]
+
+    # elif args.dataset == "Sintel-raw":
+    #     dataset_root = YOUR_DIR
+
+    #     targets = []
+    #     with open(os.path.join(dataset_root, "sample_list.txt"), "r") as f:
+    #         lines = f.readlines()
+
+    #     for line in lines:
+    #         targets += line.split()
+    #     targets = np.unique(targets).tolist()
+
+    # else:
+    #     raise ValueError(f"Unknown dataset: {args.dataset}")
 
     os.makedirs(os.path.join(args.output, args.dataset), exist_ok=True)
 
@@ -298,7 +307,7 @@ def main(args: argparse.Namespace) -> None:
 
 
 def main_mask_to_full_seg():
-    home_dir = YOUR_DIR
+    home_dir = "/home/billb/github/UnSAMFlow-Adjustment"
 
     import imageio
     from pycocotools import mask as mask_utils
@@ -365,7 +374,7 @@ def main_mask_to_full_seg():
 
 
 def main_mask_to_key_objects():
-    home_dir = YOUR_DIR
+    home_dir = "/home/billb/github/UnSAMFlow-Adjustment"
 
     from pycocotools import mask as mask_utils
 
@@ -429,3 +438,15 @@ def invoke_main() -> None:
 
 if __name__ == "__main__":
     invoke_main()  # pragma: no cover
+
+# Let's read the image at file path "/home/billb/github/UnSAMFlow-Adjustment/data/Angio_4226_0000.png", invert the grayscale, and save it back to the same file
+# import cv2
+
+# # Read the image
+# image = cv2.imread("/home/billb/github/UnSAMFlow-Adjustment/data/Angio_4226_0000.png", cv2.IMREAD_GRAYSCALE)
+
+# # Invert the grayscale image
+# inverted_image = cv2.bitwise_not(image)
+
+# # Save the inverted image back to the same file
+# cv2.imwrite("/home/billb/github/UnSAMFlow-Adjustment/data/Angio_4226_0000.png", inverted_image)
